@@ -25,7 +25,7 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    addPost(content: String!, author: String!, mentions: [String!], image: String!, profilePicture: String!): Post!
+    addPost(content: String!, author: String!, mentions: [String!], image: String!, profilePicture: String!, likes: Int!): Post!
     signUp(username: String!, email: String!, profilePicture: String!): User!
     likePost(postId: ID!): Post!
   }
@@ -53,7 +53,7 @@ const resolvers = {
 },
   Mutation: {
     addPost: (_, { content, author, mentions, image, profilePicture, likes }) => {
-      const newPost = { id: String(posts.length + 1), content, author, mentions, image, profilePicture, likes };
+      const newPost = { id: String(posts.length + 1), content, author, mentions, image, profilePicture, likes:0 };
       posts.push(newPost);
       return newPost;
     },
