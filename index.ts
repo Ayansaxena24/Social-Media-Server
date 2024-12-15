@@ -10,6 +10,7 @@ const typeDefs = gql`
     image: String
     profilePicture: String!
     likes: Int!
+    likedby: [ID!]
   }
 
   type User {
@@ -25,15 +26,15 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    addPost(content: String!, author: String!, mentions: [String!], image: String!, profilePicture: String!, likes: Int!): Post!
+    addPost(content: String!, author: String!, mentions: [String!], image: String!, profilePicture: String!, likes: Int!, likedby: [ID!]): Post!
     signUp(username: String!, email: String!, profilePicture: String!): User!
-    likePost(postId: ID!): Post!
+    likePost(postId: ID!, userId: ID!): Post!
   }
 `;
 
 // Mock data
 let posts = [
-  { id: "1", content: "Hello World!", author: "John Doe", mentions: [], image: "", profilePicture: "", likes: 0 },
+  { id: "1", content: "Hello World!", author: "John Doe", mentions: [], image: "", profilePicture: "", likes: 0, likedby: [] },
 ];
 
 let users = [
@@ -52,8 +53,8 @@ const resolvers = {
     },
 },
   Mutation: {
-    addPost: (_, { content, author, mentions, image, profilePicture, likes }) => {
-      const newPost = { id: String(posts.length + 1), content, author, mentions, image, profilePicture, likes:0 };
+    addPost: (_, { content, author, mentions, image, profilePicture, likes, likedby }) => {
+      const newPost = { id: String(posts.length + 1), content, author, mentions, image, profilePicture, likes:0, likedby:[] };
       posts.push(newPost);
       return newPost;
     },
@@ -62,12 +63,22 @@ const resolvers = {
       users.push(newUser);
       return newUser;
     },
-    likePost: (_, { postId }) => {
+    likePost: (_, { postId, userId }) => {
       const post = posts.find((p) => p.id === postId);
       if (!post) throw new Error("Post not found");
-      post.likes += 1;
+    
+      // Check if the user has already liked the post
+      if (!post.likedby.includes(userId)) {
+        post.likes += 1; // Increment the likes count
+        post.likedby.push(userId); // Add the user ID to the likedby array
+      } else {
+        post.likes -= 1; // Decrement the likes count
+        post.likedby = post.likedby.filter((id) => id !== userId); // Remove the user ID from the likedby array
+      }
+    
       return post;
     },
+    
   },
 };
 
