@@ -11,6 +11,7 @@ const typeDefs = gql`
     profilePicture: String!
     likes: Int!
     likedby: [ID!]
+    authorid: ID!
   }
 
   type User {
@@ -18,6 +19,8 @@ const typeDefs = gql`
     username: String!
     email: String!
     profilePicture: String
+    followers: [ID!]
+    following: [ID!]
   }
 
   type Query {
@@ -26,19 +29,20 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    addPost(content: String!, author: String!, mentions: [String!], image: String!, profilePicture: String!, likes: Int!, likedby: [ID!]): Post!
-    signUp(username: String!, email: String!, profilePicture: String!): User!
+    addPost(content: String!, author: String!, mentions: [String!], image: String!, profilePicture: String!, likes: Int!, likedby: [ID!], authorid: ID!): Post!
+    signUp(username: String!, email: String!, profilePicture: String!, followers: [ID!], following: [ID!]): User!
     likePost(postId: ID!, userId: ID!): Post!
+    followUser(followerId: ID!, followeeId: ID!): User!
   }
 `;
 
 // Mock data
 let posts = [
-  { id: "1", content: "Hello World!", author: "John Doe", mentions: [], image: "", profilePicture: "", likes: 0, likedby: [] },
+  { id: "1", content: "Hello World!", author: "John Doe", mentions: [], image: "", profilePicture: "https://cdn-icons-png.flaticon.com/512/149/149071.png", likes: 0, likedby: [], authorid: "1" },
 ];
 
 let users = [
-  { id: "1", username: "john_doe", email: "john.doe@example.com", profilePicture: "" },
+  { id: "1", username: "john_doe", email: "john.doe@example.com", profilePicture: "https://cdn-icons-png.flaticon.com/512/149/149071.png", followers: [], following: [] },
 ];
 
 // Define resolvers
@@ -53,13 +57,13 @@ const resolvers = {
     },
 },
   Mutation: {
-    addPost: (_, { content, author, mentions, image, profilePicture, likes, likedby }) => {
-      const newPost = { id: String(posts.length + 1), content, author, mentions, image, profilePicture, likes:0, likedby:[] };
-      posts.push(newPost);
+    addPost: (_, { content, author, mentions, image, profilePicture, likes, likedby, authorid }) => {
+      const newPost = { id: String(posts.length + 1), content, author, mentions, image, profilePicture, likes:0, likedby:[], authorid };
+      posts.unshift(newPost);
       return newPost;
     },
-    signUp: (_, { username, email, profilePicture }) => {
-      const newUser = { id: String(users.length + 1), username, email, profilePicture };
+    signUp: (_, { username, email, profilePicture, followers, following }) => {
+      const newUser = { id: String(users.length + 1), username, email, profilePicture, followers: [], following: [] };
       users.push(newUser);
       return newUser;
     },
@@ -77,6 +81,26 @@ const resolvers = {
       }
     
       return post;
+    },
+    followUser: (_, { followerId, followeeId }) => {
+      const follower = users.find((user) => user.id === followerId);
+      const followee = users.find((user) => user.id === followeeId);
+    
+      if (!follower || !followee) {
+        throw new Error("User not found");
+      }
+    
+      // Add the followeeId to the follower's following array if not already there
+      if (!follower.following.includes(followeeId)) {
+        follower.following.push(followeeId);
+        followee.followers.push(followerId);
+      }
+      else {
+        follower.following = follower.following.filter((id) => id !== followeeId);
+      }
+    
+      // Return the entire updated follower user
+      return follower;
     },
     
   },
