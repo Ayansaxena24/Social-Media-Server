@@ -21,6 +21,7 @@ const typeDefs = gql`
     profilePicture: String
     followers: [ID!]
     following: [ID!]
+    bio: String!
   }
 
   type Query {
@@ -30,7 +31,7 @@ const typeDefs = gql`
 
   type Mutation {
     addPost(content: String!, author: String!, mentions: [String!], image: String!, profilePicture: String!, likes: Int!, likedby: [ID!], authorid: ID!): Post!
-    signUp(username: String!, email: String!, profilePicture: String!, followers: [ID!], following: [ID!]): User!
+    signUp(username: String!, email: String!, profilePicture: String!, followers: [ID!], following: [ID!], bio: String!): User!
     likePost(postId: ID!, userId: ID!): Post!
     followUser(followerId: ID!, followeeId: ID!): User!
   }
@@ -42,7 +43,7 @@ let posts = [
 ];
 
 let users = [
-  { id: "1", username: "john_doe", email: "john.doe@example.com", profilePicture: "https://cdn-icons-png.flaticon.com/512/149/149071.png", followers: [], following: [] },
+  { id: "1", username: "john_doe", email: "john.doe@example.com", profilePicture: "https://cdn-icons-png.flaticon.com/512/149/149071.png", followers: [], following: [], bio: "Socially awkward" },
 ];
 
 // Define resolvers
@@ -62,8 +63,8 @@ const resolvers = {
       posts.unshift(newPost);
       return newPost;
     },
-    signUp: (_, { username, email, profilePicture, followers, following }) => {
-      const newUser = { id: String(users.length + 1), username, email, profilePicture, followers: [], following: [] };
+    signUp: (_, { username, email, profilePicture, followers, following, bio }) => {
+      const newUser = { id: String(users.length + 1), username, email, profilePicture, followers: [], following: [], bio };
       users.push(newUser);
       return newUser;
     },
