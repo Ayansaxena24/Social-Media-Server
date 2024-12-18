@@ -34,6 +34,7 @@ const typeDefs = gql`
     signUp(username: String!, email: String!, profilePicture: String!, followers: [ID!], following: [ID!], bio: String!): User!
     likePost(postId: ID!, userId: ID!): Post!
     followUser(followerId: ID!, followeeId: ID!): User!
+    deletePost(id: ID!): Post!
   }
 `;
 
@@ -68,6 +69,16 @@ const resolvers = {
       users.push(newUser);
       return newUser;
     },
+    deletePost: (_, { id }) => {
+      const postIndex = posts.findIndex((post) => post.id === id);
+      if (postIndex === -1) {
+        throw new Error("Post not found");
+      }
+      
+      // Remove the post from the array and return it
+      const deletedPost = posts.splice(postIndex, 1)[0];
+      return deletedPost;
+    }, 
     likePost: (_, { postId, userId }) => {
       const post = posts.find((p) => p.id === postId);
       if (!post) throw new Error("Post not found");
